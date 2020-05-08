@@ -17,7 +17,7 @@ type Repository interface {
 }
 
 type Resizer interface {
-	Resize(ctx context.Context, data io.Reader, output io.Writer) error
+	Resize(ctx context.Context, data io.Reader, output io.Writer, width, height int) error
 }
 
 type Storage interface {
@@ -100,7 +100,7 @@ func (s *ImageService) doResize(ctx context.Context, image *model.Image, content
 						log.Error("can't close upload writer", err)
 					}
 				}()
-				if err := s.resizer.Resize(ctx, content, writer); err != nil {
+				if err := s.resizer.Resize(ctx, content, writer, size.Width, size.Height); err != nil {
 					if closeErr := writer.CloseWithError(err); closeErr != nil {
 						log.Error("can't close upload writer after resize", err)
 					}
