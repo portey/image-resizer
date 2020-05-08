@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"time"
@@ -32,8 +33,17 @@ type ImageService struct {
 	repo    Repository
 }
 
+func New(storage Storage, resizer Resizer, repo Repository) *ImageService {
+	return &ImageService{
+		storage: storage,
+		resizer: resizer,
+		repo:    repo,
+	}
+}
+
 func (s *ImageService) Upload(ctx context.Context, upload model.ImageUpload, sizes []model.SizeRequest) (*model.Image, error) {
-	originalPath, err := s.storage.Upload(ctx, upload.Content)
+	copyContent, originalContent := copyReader(upload.Content)
+	originalPath, err := s.storage.Upload(ctx, copyContent)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +59,7 @@ func (s *ImageService) Upload(ctx context.Context, upload model.ImageUpload, siz
 		Version:    1,
 	}
 
-	image, err = s.doResize(ctx, image, upload.Content, sizes)
+	image, err = s.doResize(ctx, image, originalContent, sizes)
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +93,8 @@ func (s *ImageService) List(ctx context.Context, limit, offset int) ([]*model.Im
 }
 
 func (s *ImageService) doResize(ctx context.Context, image *model.Image, content io.Reader, sizes []model.SizeRequest) (*model.Image, error) {
+	originalContent := content
+	var contentCopy io.Reader
 	for _, size := range sizes {
 		select {
 		case <-ctx.Done():
@@ -91,7 +103,7 @@ func (s *ImageService) doResize(ctx context.Context, image *model.Image, content
 			if image.HasResizedSize(size.Width, size.Height) {
 				continue
 			}
-
+			contentCopy, originalContent = copyReader(originalContent)
 			reader, writer := io.Pipe()
 			go func() {
 				defer func() {
@@ -100,7 +112,7 @@ func (s *ImageService) doResize(ctx context.Context, image *model.Image, content
 						log.Error("can't close upload writer", err)
 					}
 				}()
-				if err := s.resizer.Resize(ctx, content, writer, size.Width, size.Height); err != nil {
+				if err := s.resizer.Resize(ctx, contentCopy, writer, size.Width, size.Height); err != nil {
 					if closeErr := writer.CloseWithError(err); closeErr != nil {
 						log.Error("can't close upload writer after resize", err)
 					}
@@ -117,4 +129,11 @@ func (s *ImageService) doResize(ctx context.Context, image *model.Image, content
 	}
 
 	return image, nil
+}
+
+func copyReader(in io.Reader) (io.Reader, io.Reader) {
+	var buf bytes.Buffer
+	cc := io.TeeReader(in, &buf)
+
+	return cc, &buf
 }

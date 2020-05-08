@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	serviceerrors "github.com/portey/image-resizer/error"
+	"github.com/portey/image-resizer/errors"
 	"github.com/portey/image-resizer/model"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -116,7 +116,7 @@ func (r *Repository) Save(ctx context.Context, version int, image model.Image) e
 	}
 
 	if updateResult.ModifiedCount == 0 {
-		return serviceerrors.RaceCondition
+		return errors.RaceCondition
 	}
 
 	return nil
@@ -128,10 +128,10 @@ func toServiceError(err error) error {
 	}
 
 	if err == mongo.ErrNoDocuments {
-		return serviceerrors.NotFound
+		return errors.NotFound
 	}
 
 	log.Error(err)
 
-	return serviceerrors.Internal
+	return errors.Internal
 }

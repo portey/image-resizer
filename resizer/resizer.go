@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/disintegration/imaging"
-	serviceerrors "github.com/portey/image-resizer/error"
+	"github.com/portey/image-resizer/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,5 +34,5 @@ func toServiceErr(err error) error {
 
 	log.Error(err)
 
-	return serviceerrors.Internal
+	return errors.Internal
 }

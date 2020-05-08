@@ -6,7 +6,7 @@ DOCKER_REPO = nexus.tools.devopenocean.studio
 SHELL=/bin/bash
 
 .PHONY: ci
-ci: lint test_unit test_integration build
+ci: mockgen lint test_unit test_integration build
 
 .PHONY: deps
 deps:
@@ -16,6 +16,10 @@ deps:
 .PHONY: build
 build:
 	CGO_ENABLED=0 GOOS=linux go build -mod=vendor -a -o artifacts/svc .
+
+.PHONY: mockgen
+mockgen:
+	mockgen -source=service/service.go -destination=service/mock/deps.go -package=mock
 
 .PHONY: lint
 lint:

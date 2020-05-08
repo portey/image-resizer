@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v6"
-	serviceerrors "github.com/portey/image-resizer/error"
+	"github.com/portey/image-resizer/errors"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 )
@@ -104,5 +104,5 @@ func toServiceError(err error) error {
 
 	log.Error(err)
 
-	return serviceerrors.Internal
+	return errors.Internal
 }
