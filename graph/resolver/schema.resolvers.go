@@ -11,11 +11,11 @@ import (
 	"github.com/portey/image-resizer/graph/model"
 )
 
-func (r *mutationResolver) UploadImage(ctx context.Context, image graphql.Upload, sizes []*model.SizeInput, async bool) (*model.Image, error) {
+func (r *mutationResolver) UploadImage(ctx context.Context, image graphql.Upload, sizes []*model.SizeInput) (*model.Image, error) {
 	return nil, nil
 }
 
-func (r *mutationResolver) ResizeImage(ctx context.Context, imageID string, sizes []*model.SizeInput, async bool) (*model.Image, error) {
+func (r *mutationResolver) ResizeImage(ctx context.Context, imageID string, sizes []*model.SizeInput) (*model.Image, error) {
 	return nil, nil
 }
 

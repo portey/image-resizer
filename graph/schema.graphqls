@@ -24,9 +24,9 @@ input SizeInput {
 
 type Mutation {
     # upload image and resize
-    uploadImage(image: Upload!, sizes: [SizeInput!]!, async: Boolean! = false): Image!
+    uploadImage(image: Upload!, sizes: [SizeInput!]!): Image!
     # resize existance image
-    resizeImage(imageId: ID!, sizes: [SizeInput!]!, async: Boolean! = false): Image!
+    resizeImage(imageId: ID!, sizes: [SizeInput!]!): Image!
 }
 
 type Query {

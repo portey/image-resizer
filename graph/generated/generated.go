@@ -55,8 +55,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ResizeImage func(childComplexity int, imageID string, sizes []*model.SizeInput, async bool) int
-		UploadImage func(childComplexity int, image graphql.Upload, sizes []*model.SizeInput, async bool) int
+		ResizeImage func(childComplexity int, imageID string, sizes []*model.SizeInput) int
+		UploadImage func(childComplexity int, image graphql.Upload, sizes []*model.SizeInput) int
 	}
 
 	Query struct {
@@ -71,8 +71,8 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	UploadImage(ctx context.Context, image graphql.Upload, sizes []*model.SizeInput, async bool) (*model.Image, error)
-	ResizeImage(ctx context.Context, imageID string, sizes []*model.SizeInput, async bool) (*model.Image, error)
+	UploadImage(ctx context.Context, image graphql.Upload, sizes []*model.SizeInput) (*model.Image, error)
+	ResizeImage(ctx context.Context, imageID string, sizes []*model.SizeInput) (*model.Image, error)
 }
 type QueryResolver interface {
 	Images(ctx context.Context, limit int, offset int) ([]*model.Image, error)
@@ -152,7 +152,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ResizeImage(childComplexity, args["imageId"].(string), args["sizes"].([]*model.SizeInput), args["async"].(bool)), true
+		return e.complexity.Mutation.ResizeImage(childComplexity, args["imageId"].(string), args["sizes"].([]*model.SizeInput)), true
 
 	case "Mutation.uploadImage":
 		if e.complexity.Mutation.UploadImage == nil {
@@ -164,7 +164,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UploadImage(childComplexity, args["image"].(graphql.Upload), args["sizes"].([]*model.SizeInput), args["async"].(bool)), true
+		return e.complexity.Mutation.UploadImage(childComplexity, args["image"].(graphql.Upload), args["sizes"].([]*model.SizeInput)), true
 
 	case "Query.images":
 		if e.complexity.Query.Images == nil {
@@ -289,9 +289,9 @@ input SizeInput {
 
 type Mutation {
     # upload image and resize
-    uploadImage(image: Upload!, sizes: [SizeInput!]!, async: Boolean! = false): Image!
+    uploadImage(image: Upload!, sizes: [SizeInput!]!): Image!
     # resize existance image
-    resizeImage(imageId: ID!, sizes: [SizeInput!]!, async: Boolean! = false): Image!
+    resizeImage(imageId: ID!, sizes: [SizeInput!]!): Image!
 }
 
 type Query {
@@ -324,14 +324,6 @@ func (ec *executionContext) field_Mutation_resizeImage_args(ctx context.Context,
 		}
 	}
 	args["sizes"] = arg1
-	var arg2 bool
-	if tmp, ok := rawArgs["async"]; ok {
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["async"] = arg2
 	return args, nil
 }
 
@@ -354,14 +346,6 @@ func (ec *executionContext) field_Mutation_uploadImage_args(ctx context.Context,
 		}
 	}
 	args["sizes"] = arg1
-	var arg2 bool
-	if tmp, ok := rawArgs["async"]; ok {
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["async"] = arg2
 	return args, nil
 }
 
@@ -696,7 +680,7 @@ func (ec *executionContext) _Mutation_uploadImage(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UploadImage(rctx, args["image"].(graphql.Upload), args["sizes"].([]*model.SizeInput), args["async"].(bool))
+		return ec.resolvers.Mutation().UploadImage(rctx, args["image"].(graphql.Upload), args["sizes"].([]*model.SizeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -737,7 +721,7 @@ func (ec *executionContext) _Mutation_resizeImage(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ResizeImage(rctx, args["imageId"].(string), args["sizes"].([]*model.SizeInput), args["async"].(bool))
+		return ec.resolvers.Mutation().ResizeImage(rctx, args["imageId"].(string), args["sizes"].([]*model.SizeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
