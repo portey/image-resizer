@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	serviceerrors "github.com/portey/image-resizer/error"
+	serviceerrors "github.com/portey/image-resizer/errors"
 	"github.com/portey/image-resizer/model"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"

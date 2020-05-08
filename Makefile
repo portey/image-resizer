@@ -2,7 +2,6 @@ export GO111MODULE=on
 export GOSUMDB=off
 
 IMAGE_TAG := $(shell git rev-parse HEAD)
-DOCKER_REPO = nexus.tools.devopenocean.studio
 SHELL=/bin/bash
 
 .PHONY: ci
@@ -35,4 +34,4 @@ test_integration:
 
 .PHONY: dockerise
 dockerise:
-	docker build -t "${DOCKER_REPO}/image-resizer:${IMAGE_TAG}" .
+	docker build -t "image-resizer:${IMAGE_TAG}" .
