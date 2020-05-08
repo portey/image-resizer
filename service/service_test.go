@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/portey/image-resizer/errors"
 	"github.com/portey/image-resizer/model"
 	"github.com/portey/image-resizer/service/mock"
 	"github.com/stretchr/testify/assert"
@@ -85,4 +86,53 @@ func TestImageService_Upload(t *testing.T) {
 	}})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, i.ID)
+}
+
+func Test_Validation(t *testing.T) {
+	f := func(obj interface{}, err errors.InvalidParams) {
+		srv := New(nil, nil, nil)
+		actualErr := srv.validateParams(obj)
+		assert.Equal(t, err, actualErr)
+	}
+
+	//empty upload
+	f(model.ImageUpload{}, errors.InvalidParams{
+		{
+			Param:   "Content",
+			Message: "required",
+		},
+		{
+			Param:   "Filename",
+			Message: "required",
+		},
+		{
+			Param:   "Size",
+			Message: "required",
+		},
+		{
+			Param:   "MimeType",
+			Message: "required",
+		},
+	})
+
+	//invalid mimetype
+	f(model.ImageUpload{
+		Content:  strings.NewReader("some content"),
+		Filename: "test.txt",
+		Size:     123000,
+		MimeType: "image/unknown",
+	}, errors.InvalidParams{
+		{
+			Param:   "MimeType",
+			Message: "eq=image/jpeg|eq=image/png",
+		},
+	})
+
+	//fully valid
+	f(model.ImageUpload{
+		Content:  strings.NewReader("some content"),
+		Filename: "test.txt",
+		Size:     123000,
+		MimeType: "image/png",
+	}, nil)
 }

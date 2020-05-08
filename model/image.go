@@ -41,13 +41,13 @@ type Size struct {
 }
 
 type ImageUpload struct {
-	Content  io.Reader
-	Filename string
-	Size     int64
-	MimeType string
+	Content  io.Reader `validate:"required"`
+	Filename string    `validate:"required,min=5"`
+	Size     int64     `validate:"required,min=1000"`
+	MimeType string    `validate:"required,min=5,eq=image/jpeg|eq=image/png"`
 }
 
 type SizeRequest struct {
-	Width  int
-	Height int
+	Width  int `validate:"required,min=10"`
+	Height int `validate:"required,min=10"`
 }

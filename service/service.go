@@ -6,6 +6,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/portey/image-resizer/errors"
 	"github.com/portey/image-resizer/model"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
@@ -28,20 +30,28 @@ type Storage interface {
 }
 
 type ImageService struct {
-	storage Storage
-	resizer Resizer
-	repo    Repository
+	storage  Storage
+	resizer  Resizer
+	repo     Repository
+	validate *validator.Validate
 }
 
 func New(storage Storage, resizer Resizer, repo Repository) *ImageService {
+	validate := validator.New()
+
 	return &ImageService{
-		storage: storage,
-		resizer: resizer,
-		repo:    repo,
+		validate: validate,
+		storage:  storage,
+		resizer:  resizer,
+		repo:     repo,
 	}
 }
 
 func (s *ImageService) Upload(ctx context.Context, upload model.ImageUpload, sizes []model.SizeRequest) (*model.Image, error) {
+	if err := s.validateParams(upload, sizes); err != nil {
+		return nil, err
+	}
+
 	copyContent, originalContent := copyReader(upload.Content)
 	originalPath, err := s.storage.Upload(ctx, copyContent)
 	if err != nil {
@@ -68,6 +78,10 @@ func (s *ImageService) Upload(ctx context.Context, upload model.ImageUpload, siz
 }
 
 func (s *ImageService) Resize(ctx context.Context, id string, sizes []model.SizeRequest) (*model.Image, error) {
+	if err := s.validateParams(sizes); err != nil {
+		return nil, err
+	}
+
 	image, err := s.repo.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -129,6 +143,32 @@ func (s *ImageService) doResize(ctx context.Context, image *model.Image, content
 	}
 
 	return image, nil
+}
+
+func (s *ImageService) validateParams(objs ...interface{}) error {
+	var paramErrors errors.InvalidParams
+	for _, obj := range objs {
+		err := s.validate.Struct(obj)
+		if err == nil {
+			continue
+		}
+
+		if vErrors, ok := err.(validator.ValidationErrors); ok {
+			for _, vError := range vErrors {
+				paramErrors = append(paramErrors, errors.InvalidParam{
+					Param:   vError.Field(),
+					Message: vError.Tag(),
+				})
+			}
+
+			continue
+		}
+
+		log.Error(err)
+		return errors.Internal
+	}
+
+	return paramErrors
 }
 
 func copyReader(in io.Reader) (io.Reader, io.Reader) {
