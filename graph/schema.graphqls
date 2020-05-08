@@ -1,0 +1,35 @@
+scalar Time
+scalar Upload
+
+type Image {
+    id: ID!
+    path: String!
+    clientName: String!
+    mimeType: String!
+    size: Int!
+    uploadAt: Time
+    sizes: [Size!]!
+}
+
+type Size {
+    path: String!
+    width: Int!
+    height: Int!
+}
+
+input SizeInput {
+    width: Int!
+    height: Int!
+}
+
+type Mutation {
+    # upload image and resize
+    uploadImage(image: Upload!, sizes: [SizeInput!]!, async: Boolean! = false): Image!
+    # resize existance image
+    resizeImage(imageId: ID!, sizes: [SizeInput!]!, async: Boolean! = false): Image!
+}
+
+type Query {
+    # list all images with pagination
+    images(limit: Int! = 20, offset: Int! = 0): [Image!]!
+}
