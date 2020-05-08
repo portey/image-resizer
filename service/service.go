@@ -13,7 +13,7 @@ import (
 type Repository interface {
 	Get(ctx context.Context, id string) (*model.Image, error)
 	List(ctx context.Context, limit, offset int) ([]*model.Image, error)
-	Save(ctx context.Context, image model.Image) error
+	Save(ctx context.Context, version int, image model.Image) error
 }
 
 type Resizer interface {
@@ -54,7 +54,7 @@ func (s *ImageService) Upload(ctx context.Context, upload model.ImageUpload, siz
 		return nil, err
 	}
 
-	return image, s.repo.Save(ctx, *image)
+	return image, s.repo.Save(ctx, 0, *image)
 }
 
 func (s *ImageService) Resize(ctx context.Context, id string, sizes []model.SizeRequest) (*model.Image, error) {
@@ -72,9 +72,10 @@ func (s *ImageService) Resize(ctx context.Context, id string, sizes []model.Size
 	if err != nil {
 		return nil, err
 	}
+	version := image.Version
 	image.Version++
 
-	return image, s.repo.Save(ctx, *image)
+	return image, s.repo.Save(ctx, version, *image)
 }
 
 func (s *ImageService) List(ctx context.Context, limit, offset int) ([]*model.Image, error) {

@@ -6,7 +6,7 @@ import (
 )
 
 type Image struct {
-	ID         string    `json:"id" bson:"id"`
+	ID         string    `json:"id" bson:"_id"`
 	Path       string    `json:"path" bson:"path"`
 	ClientName string    `json:"clientName" bson:"clientName"`
 	MimeType   string    `json:"mimeType" bson:"mimeType"`
