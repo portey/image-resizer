@@ -48,8 +48,13 @@ func New(storage Storage, resizer Resizer, repo Repository) *ImageService {
 }
 
 func (s *ImageService) Upload(ctx context.Context, upload model.ImageUpload, sizes []model.SizeRequest) (*model.Image, error) {
-	if err := s.validateParams(upload, sizes); err != nil {
+	if err := s.validateParams(upload, sizes); len(err) > 0 {
 		return nil, err
+	}
+	for _, size := range sizes {
+		if err := s.validateParams(size); len(err) > 0 {
+			return nil, err
+		}
 	}
 
 	copyContent, originalContent := copyReader(upload.Content)
@@ -78,8 +83,10 @@ func (s *ImageService) Upload(ctx context.Context, upload model.ImageUpload, siz
 }
 
 func (s *ImageService) Resize(ctx context.Context, id string, sizes []model.SizeRequest) (*model.Image, error) {
-	if err := s.validateParams(sizes); err != nil {
-		return nil, err
+	for _, size := range sizes {
+		if err := s.validateParams(size); len(err) > 0 {
+			return nil, err
+		}
 	}
 
 	image, err := s.repo.Get(ctx, id)
@@ -145,7 +152,7 @@ func (s *ImageService) doResize(ctx context.Context, image *model.Image, content
 	return image, nil
 }
 
-func (s *ImageService) validateParams(objs ...interface{}) error {
+func (s *ImageService) validateParams(objs ...interface{}) errors.InvalidParams {
 	var paramErrors errors.InvalidParams
 	for _, obj := range objs {
 		err := s.validate.Struct(obj)
@@ -165,7 +172,12 @@ func (s *ImageService) validateParams(objs ...interface{}) error {
 		}
 
 		log.Error(err)
-		return errors.Internal
+		paramErrors = append(paramErrors, errors.InvalidParam{
+			Param:   "internal",
+			Message: err.Error(),
+		})
+
+		return paramErrors
 	}
 
 	return paramErrors

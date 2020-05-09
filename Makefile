@@ -3,6 +3,7 @@ export GOSUMDB=off
 
 IMAGE_TAG := $(shell git rev-parse HEAD)
 SHELL=/bin/bash
+DOCKER_COMPOSE = docker-compose -f docker-compose.yml
 
 .PHONY: ci
 ci: mockgen lint test_unit test_integration build
@@ -35,3 +36,15 @@ test_integration:
 .PHONY: dockerise
 dockerise:
 	docker build -t "image-resizer:${IMAGE_TAG}" .
+
+.PHONY: docker-up
+docker-up:
+	$(DOCKER_COMPOSE) down --volumes --remove-orphans
+	$(DOCKER_COMPOSE) rm --force --stop -v
+	IMAGE_TAG=${IMAGE_TAG} \
+	$(DOCKER_COMPOSE) up -d --force-recreate --remove-orphans --build
+
+.PHONY: docker-down
+docker-down:
+	$(DOCKER_COMPOSE) down --volumes --remove-orphans
+	$(DOCKER_COMPOSE) rm --force --stop -v

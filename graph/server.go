@@ -6,7 +6,9 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	serviceerrors "github.com/portey/image-resizer/errors"
 	"github.com/portey/image-resizer/graph/generated"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 import (
@@ -30,6 +32,35 @@ func New(port int, resolver generated.ResolverRoot) *Server {
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
 	}))
+	srv.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+		switch err.(type) {
+		case serviceerrors.ServiceError:
+			return &gqlerror.Error{
+				Message: err.Error(),
+				Extensions: map[string]interface{}{
+					"type":     "service",
+					"sub_type": err.Error(),
+				},
+			}
+		case serviceerrors.InvalidParams:
+			return &gqlerror.Error{
+				Message: err.Error(),
+				Extensions: map[string]interface{}{
+					"type":     "service",
+					"sub_type": "InvalidPayload",
+					"details":  err,
+				},
+			}
+		}
+
+		return &gqlerror.Error{
+			Message: err.Error(),
+			Extensions: map[string]interface{}{
+				"type":     "service",
+				"sub_type": serviceerrors.Internal.Error(),
+			},
+		}
+	})
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", playground.Handler("GraphQL playground", "/query"))
