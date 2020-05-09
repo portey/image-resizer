@@ -55,7 +55,7 @@ func (r *Repository) Ping() error {
 }
 
 func (r *Repository) Get(ctx context.Context, id string) (*model.Image, error) {
-	res := r.collection.FindOne(ctx, bson.D{{"_id", id}})
+	res := r.collection.FindOne(ctx, bson.D{{Key: "_id", Value: id}})
 	if res.Err() != nil {
 		return nil, toServiceError(res.Err())
 	}
@@ -101,8 +101,8 @@ func (r *Repository) List(ctx context.Context, limit, offset int) ([]*model.Imag
 
 func (r *Repository) Save(ctx context.Context, version int, image model.Image) error {
 	filter := bson.D{
-		{"_id", image.ID},
-		{"version", version},
+		{Key: "_id", Value: image.ID},
+		{Key: "version", Value: version},
 	}
 
 	if version == 0 {
@@ -110,7 +110,7 @@ func (r *Repository) Save(ctx context.Context, version int, image model.Image) e
 		return toServiceError(err)
 	}
 
-	updateResult, err := r.collection.UpdateOne(ctx, filter, bson.D{{"$set", image}}, options.Update())
+	updateResult, err := r.collection.UpdateOne(ctx, filter, bson.D{{Key: "$set", Value: image}}, options.Update())
 	if err != nil {
 		return toServiceError(err)
 	}
