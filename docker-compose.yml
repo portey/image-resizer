@@ -1,4 +1,4 @@
-version: '3.2'
+version: '3.4'
 services:
   mongodb:
     image: mongo:latest
@@ -25,13 +25,15 @@ services:
       - minio
       - mongodb
     ports:
-      - 8130:8080
-      - 8131:8888
+      - 8080:8080
+      - 8888:8888
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
-      interval: 20s
-      timeout: 20s
-      retries: 3
+      interval: 5s
+      timeout: 10s
+      retries: 100
+      start_period: 40s
+    restart: always
 
 volumes:
   minio_data:
