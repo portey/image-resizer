@@ -65,7 +65,7 @@ func TestImageService_Upload(t *testing.T) {
 			assert.Len(t, i.Sizes, 1)
 			assert.Equal(t, "original.png", i.ClientName)
 			assert.Equal(t, "image/png", i.MimeType)
-			assert.Equal(t, int64(123), i.Size)
+			assert.Equal(t, int64(123123), i.Size)
 			assert.Equal(t, "some/path/test.jpg", i.Path)
 			assert.Equal(t, "some/resized/test.jpg", i.Sizes[0].Path)
 			assert.Equal(t, 100, i.Sizes[0].Width)
@@ -78,7 +78,7 @@ func TestImageService_Upload(t *testing.T) {
 	i, err := srv.Upload(ctx, model.ImageUpload{
 		Content:  strings.NewReader(content),
 		Filename: "original.png",
-		Size:     123,
+		Size:     123123,
 		MimeType: "image/png",
 	}, []model.SizeRequest{{
 		Width:  100,
