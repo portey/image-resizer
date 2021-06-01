@@ -17,7 +17,6 @@ const collection = "images"
 type Repository struct {
 	client     *mongo.Client
 	collection *mongo.Collection
-	name       string
 }
 
 func New(ctx context.Context, uri, database string) (*Repository, error) {
