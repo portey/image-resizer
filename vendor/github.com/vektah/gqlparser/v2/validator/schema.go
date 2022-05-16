@@ -40,8 +40,8 @@ func ValidateSchemaDocument(ast *SchemaDocument) (*Schema, *gqlerror.Error) {
 		def := schema.Types[ext.Name]
 		if def == nil {
 			schema.Types[ext.Name] = &Definition{
-				Kind:     ext.Kind,
-				Name:     ext.Name,
+				Kind:        ext.Kind,
+				Name:        ext.Name,
 				Position: ext.Position,
 			}
 			def = schema.Types[ext.Name]
